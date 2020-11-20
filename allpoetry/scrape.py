@@ -89,7 +89,6 @@ def get_poem_links(sess, author, top_k=None):
         else:
             poems_found = False
         page += 1
-        
     return links
 
 

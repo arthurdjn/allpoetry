@@ -12,6 +12,7 @@
 import requests
 import lxml.html
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 # allpoetry package
 from .poem import Poem
@@ -57,3 +58,20 @@ class AllPoetry:
     def get_poem_from_url(self, poem_url):
         poem_data = get_poem_from_url(self.session, poem_url)
         return Poem(**poem_data)
+
+    def get_poems(self, author, top_k=None):
+        poems = []
+        links = self.get_poem_links(author, top_k=top_k)
+        length_str = len(str(len(links)))
+        trange = tqdm(links.values(), desc=f"Poem", position=0, leave=True)
+        for i, link in enumerate(trange):
+            # Update the progress bar
+            trange.set_description(f"Poem {i+1:>{length_str}}/{len(links)}")
+            trange.refresh()
+            try:
+                poem = self.get_poem_from_url(link)
+                trange.set_postfix({"title": poem.title[:12] + "..." if len(poem.title[:15]) == 15 else poem.title[:15]})
+                poems.append(poem)
+            except IndexError:
+                pass
+        return poems
