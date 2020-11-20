@@ -16,13 +16,14 @@ from tqdm import tqdm
 
 # allpoetry package
 from .poem import Poem
-from .scrape import get_poem_from_url, get_poem_links
+from .author import Author
+from .functional import *
 
 
 class AllPoetry:
     r"""
     API to access poems on ``allpoetry.com``
-    
+
     * :attr:`session` (requests.Session): Session used to connect on ``allpoetry`` servers.
 
     .. note::
@@ -52,16 +53,16 @@ class AllPoetry:
         if errors:
             raise RuntimeError("Error logging in: {}".format("&&".join([e.text for e in errors])))
 
-    def get_poem_links(self, author, top_k=None):
-        return get_poem_links(self.session, author, top_k=top_k)
+    def get_poem_links(self, author_name, top_k=None):
+        return get_poems_links(self.session, author_name, top_k=top_k)
 
     def get_poem_from_url(self, poem_url):
         poem_data = get_poem_from_url(self.session, poem_url)
         return Poem(**poem_data)
 
-    def get_poems(self, author, top_k=None):
+    def get_poems(self, author_name, top_k=None):
         poems = []
-        links = self.get_poem_links(author, top_k=top_k)
+        links = self.get_poem_links(author_name, top_k=top_k)
         length_str = len(str(len(links)))
         trange = tqdm(links.values(), desc=f"Poem", position=0, leave=True)
         for i, link in enumerate(trange):
@@ -75,3 +76,34 @@ class AllPoetry:
             except IndexError:
                 pass
         return poems
+
+    def get_author_from_url(self, author_url):
+        author_data = get_author_from_url(self.session, author_url)
+        return Author(**author_data)
+
+    def get_author(self, author_name):
+        author_data = get_author_from_url(self.session, f"https://allpoetry.com/{author_name}")
+        return Author(**author_data)
+
+    def get_famous_authors_links(self, top_k=None):
+        return get_famous_authors_links(self.session, top_k=top_k)
+
+    def get_famous_authors(self, top_k=None):
+        authors = []
+        links = self.get_famous_authors_links(top_k=top_k)
+        length_str = len(str(len(links)))
+        trange = tqdm(links.values(), desc=f"Author", position=0, leave=True)
+        for i, link in enumerate(trange):
+            # Update the progress bar
+            trange.set_description(f"Author {i+1:>{length_str}}/{len(links)}")
+            trange.refresh()
+            try:
+                author = self.get_author_from_url(link)
+                trange.set_postfix({"name": author.name[:12] + "..." if len(author.name[:15]) == 15 else author.name[:15]})
+                authors.append(author)
+            except IndexError:
+                pass
+        return authors
+
+    def __repr__(self):
+        return "<AllPoetry API>"

@@ -9,47 +9,7 @@
 # All rights reserved. See LICENSE.md for more details.
 
 
-import re
-
-
-UNWANTED_PARTS = [
-    ".............",
-    "-------------",
-    "............."
-]
-
-
-def process(lines):
-    """Process the lines of a ``Poem``, and make sure all poems are in the same format.
-    For example, this function will remove special characters, unnecessary white spaces and unwanted words.
-
-    Args:
-        lines (list): List of strings which correspond to the lines of the poem.
-
-    Returns:
-        list
-    """
-    new_lines = []
-    for line in lines:
-        add_line = True
-        for word in UNWANTED_PARTS:
-            if word in line:
-                add_line = False
-        if add_line:
-            line = re.sub('[^A-Za-z0-9|?|!|.|,|;|:|(|)|"|\'|—]+', " ", line)
-            line = line.replace(" s ", "'s ")
-            line = line.replace(" t ", "'t ")
-            new_lines.append(" ".join(line.split()))
-    new_lines = re.sub(r"\n\s*\n\s*\n", "\n\n", "\n".join(new_lines)).split("\n")
-    if new_lines[0] == "":
-        new_lines.pop(0)
-    if new_lines[0] == "":
-        new_lines.pop(0)
-    if new_lines[-1] == "":
-        new_lines.pop(-1)
-    if new_lines[-1] == "":
-        new_lines.pop(-1)
-    return new_lines
+from .functional import process_lines, process_name
 
 
 class Poem:
@@ -79,8 +39,8 @@ class Poem:
     def __init__(self, title=None, lines=None, author=None, meta=None, url=None, 
                  date=None, likes=None, views=None, tags=None):
         self.title = title
-        self.lines = process(lines)
-        self.author = author
+        self.lines = process_lines(lines)
+        self.author = process_name(author)
         self.meta = meta
         self.url = url
         self.likes = likes
@@ -92,16 +52,20 @@ class Poem:
     def text(self):
         return "\n".join(self.lines)
 
+    def __len__(self):
+        return len((" ".join(self.lines)).split(" "))
+
     def __str__(self):
         rep = self.title or ""
         rep += "\n" + "¯" * len(rep) + "\n\n"
-        rep += "“" + "\n".join(self.lines) + "”\n\n"
-        rep += "— " + " ".join(" ".join(self.author.split("-")).split("_")) + "\n"
+        rep += "“" + self.text + "”\n\n"
+        rep += "— " + self.author + "\n"
         rep += f"  Likes: {self.likes:,}"
         rep += f", Views: {self.views:,}"
         if self.tags != []:
             rep += f", Tags: {', '.join(self.tags)}"
         return rep
 
-    def __len__(self):
-        return len((" ".join(self.lines)).split(" "))
+    def __repr__(self):
+        return f"<Poem: {self.title}, from {self.author}>"
+    
