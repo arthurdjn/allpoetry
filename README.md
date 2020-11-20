@@ -191,27 +191,21 @@ tags = poem.tags
 ### Retrieve all Poems
 
 You can of course retrieve all poems corresponding to an author.
-To do so, use the `get_poem_links` function, which returns a dictionary of couple *(poem's title, poem's url)*.
 
 The `top_k` parameter is used to control the number of retrieved poems. If provided, you will get maximum `top_k` poems otherwise all poems will be returned.
 
 ```python
-AUTHOR_NAME = "Sylvia_Plath"
-
-poem_urls = api.get_poem_links(AUTHOR_NAME, top_k=100)
+poems = api.get_poems(AUTHOR_NAME, top_k=100)
 ```
 
-Then, to retrieve the poems, you can iterate on the `url`, and get the corresponding poem with the functions seen above:
+### Retrieve famous authors
+
+You can also retrieve famous authors, or users with:
 
 ```python
-poems = {}
+authors = api.get_famous_authors(top_k=100)
 
-for title, url in poem_urls.items():
-    try:
-        poem = api.get_poem_from_url(url)
-        poems[title] = poem
-    except IndexError as error:
-        pass
+author = api.get_author(AUTHOR_NAME)
 ```
 
 ### Save your Poems
@@ -228,6 +222,7 @@ with open(f"{AUTHOR_NAME}.pkl", "wb") as file:
 * Add similar authors feature
 * jsonify a poem
 * retrieve a poem from its title and author (?)
+* ~~Add famous authors feature~~ ✔️
 
 ## ✍️ Authors <a name = "authors"></a>
 
