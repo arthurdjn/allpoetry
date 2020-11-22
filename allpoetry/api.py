@@ -66,13 +66,13 @@ class AllPoetry:
         length_str = len(str(len(links)))
         trange = tqdm(links.values(), desc=f"Poem", position=0, leave=True)
         for i, link in enumerate(trange):
-            # Update the progress bar
-            trange.set_description(f"Poem {i+1:>{length_str}}/{len(links)}")
-            trange.refresh()
             try:
                 poem = self.get_poem_from_url(link)
-                trange.set_postfix({"title": poem.title[:12] + "..." if len(poem.title[:15]) == 15 else poem.title[:15]})
                 poems.append(poem)
+                # Update the progress bar
+                desc = poem.title[:12] + "..." if len(poem.title[:15]) == 15 else poem.title[:15] + " " * (15 - len(poem.title[:15]))
+                trange.set_description(f"Poem {desc} loading")
+                trange.refresh()
             except IndexError:
                 pass
         return poems
@@ -94,16 +94,19 @@ class AllPoetry:
         length_str = len(str(len(links)))
         trange = tqdm(links.values(), desc=f"Author", position=0, leave=True)
         for i, link in enumerate(trange):
-            # Update the progress bar
-            trange.set_description(f"Author {i+1:>{length_str}}/{len(links)}")
-            trange.refresh()
             try:
                 author = self.get_author_from_url(link)
-                trange.set_postfix({"name": author.name[:12] + "..." if len(author.name[:15]) == 15 else author.name[:15]})
                 authors.append(author)
+
+                # Update the progress bar
+                desc = author.name[:12] + "..." if len(author.name[:15]) == 15 else author.name[:15] + " " * (15 - len(author.name[:15]))
+                trange.set_description(f"Author {desc} loading")
             except IndexError:
                 pass
         return authors
+
+    def get_categories(self):
+        return get_categories(self.session)
 
     def __repr__(self):
         return "<AllPoetry API>"

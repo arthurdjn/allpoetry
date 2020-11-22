@@ -11,8 +11,7 @@
 
 from dateutil.parser import parse as parse_date
 from bs4 import BeautifulSoup
-
-
+import unidecode
 import re
 
 
@@ -40,9 +39,13 @@ def process_lines(lines):
             if word in line:
                 add_line = False
         if add_line:
-            line = re.sub('[^A-Za-z0-9|?|!|.|,|;|:|(|)|"|\'|—]+', " ", line)
+            line = unidecode.unidecode(line)
+            line = re.sub('[^A-Za-z0-9|?|!|.|,|;|:|(|)|"|\'|—|-]+', " ", line)
             line = line.replace(" s ", "'s ")
             line = line.replace(" t ", "'t ")
+            line = line.replace(" - ", " — ")
+            if line[:-2] == " -":
+                line = line[:-2] + " —"
             new_lines.append(" ".join(line.split()))
     new_lines = re.sub(r"\n\s*\n\s*\n", "\n\n", "\n".join(new_lines)).split("\n")
     if new_lines[0] == "":
@@ -65,6 +68,8 @@ def process_name(name):
     Returns:
         str
     """
+    name = unidecode.unidecode(name)
+    name = re.sub('[^A-Za-z0-9|?|!|.|,|;|:|(|)|"|\'|—|-]+', " ", name)
     name = name.replace("-", " ").replace("_", " ")
     return " ".join(name.split())
 
@@ -203,9 +208,14 @@ def get_poem_from_url(sess, poem_url):
     # 5. Poem metadata
     poem_data["meta"] = poem_soup.find_all("div", {"class": "copyright"})[0].text
     # 6. Poem views
-    view_string = poem_soup.find("span", {"id": "views"}).text.split("views")[0].strip()
-    poem_data["views"] = _parse_view_string(view_string)
-    # 7. Poem views
+    try:
+        view_string = poem_soup.find("span", {"id": "views"}).text.split("views")[0].strip()
+        views = _parse_view_string(view_string)
+    except Exception:
+        views = 0
+    finally:
+        poem_data["views"] = views
+    # 7. Poem date
     try:
         date = parse_date(poem_soup.select(".author_copyright")[0].select(".timeago")[0].get("title"))
     except IndexError:
@@ -293,3 +303,18 @@ def get_author_from_url(sess, author_url):
         info = element2string(author_soup.select(".media .preview")[0])
     info = "\n".join(process_lines(info.split("\n")))
     return {"name": name, "url": author_url, "info": info}
+
+
+def get_categories(sess):
+    url = "https://allpoetry.com"
+    html = sess.get(url)
+    soup = BeautifulSoup(html.text, "html.parser")
+    categories = {}
+    try:
+        for element in soup.select(".all_cats")[-1].find_all("a"):
+            category = process_name(element.text.lower()).replace(" ", "_")
+            categories[category] = url + element["href"]
+    except Exception:
+        pass
+    return categories
+    

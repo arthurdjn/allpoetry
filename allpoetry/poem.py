@@ -38,13 +38,13 @@ class Poem:
 
     def __init__(self, title=None, lines=None, author=None, meta=None, url=None, 
                  date=None, likes=None, views=None, tags=None):
-        self.title = title
-        self.lines = process_lines(lines)
+        self.title = process_name(title)
+        self.lines = lines
         self.author = process_name(author)
         self.meta = meta
         self.url = url
-        self.likes = likes
-        self.views = views
+        self.likes = likes or 0
+        self.views = views or 0
         self.date = date
         self.tags = tags or []
 

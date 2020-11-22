@@ -139,6 +139,7 @@ data/
 .weights/
 *.pkl*
 *.csv
+*.txt
 
 # Tests
 *test*.ipynb
