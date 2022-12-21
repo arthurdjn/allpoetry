@@ -109,14 +109,14 @@ def get_nth_poem_links(sess, author, page=1):
     links = {}
     # NOTE: Home pages are different from users / real poets. (ex Sylvia Plath).
     # For user-base pages:
-    if len(links_soup.select(".t_links")[0].select(".clearfix")) > 0:
+    if 'poems/about' not in links_url and len(links_soup.select(".t_links")[0].select(".clearfix")) > 0:
         for entry in links_soup.select(".t_links")[0].select(".clearfix")[0].find_all("div", {"class": "itm"}):
             entry = entry.select("a")[0]
             title = entry.text
             url = "https://allpoetry.com" + entry["href"]
             links[title] = url
     # For poet-base pages:
-    elif len(links_soup.select(".items_group")[0].select("h1.title")) > 0:
+    elif 'poems/about' in links_url or len(links_soup.select(".items_group")[0].select("h1.title")) > 0:
         for entry in links_soup.select(".items_group")[0].select("h1.title"):
             entry = entry.select("a")[0]
             title = entry.text
